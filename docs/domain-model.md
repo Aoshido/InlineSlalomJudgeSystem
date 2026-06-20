@@ -44,6 +44,7 @@ The system is not required to automatically determine competition winners in its
 9. Runs last 2 minutes.
 10. Trick line (50 / 80 / 120) affects scoring.
 11. Judge scores are averaged.
+12. A judge may score a given RunExecution at most once.
 
 ---
 

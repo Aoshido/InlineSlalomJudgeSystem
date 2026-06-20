@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\RunExecutionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\LineType;
 
@@ -26,6 +28,17 @@ class RunExecution
 
     #[ORM\Column(enumType: LineType::class)]
     private LineType $line;
+
+    /**
+     * @var Collection<int, JudgeScore>
+     */
+    #[ORM\OneToMany(targetEntity: JudgeScore::class, mappedBy: 'runExecution', orphanRemoval: true)]
+    private Collection $judgeScores;
+
+    public function __construct()
+    {
+        $this->judgeScores = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -76,6 +89,31 @@ class RunExecution
     public function setLine(LineType $line): static
     {
         $this->line = $line;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, JudgeScore>
+     */
+    public function getJudgeScores(): Collection
+    {
+        return $this->judgeScores;
+    }
+
+    public function addJudgeScore(JudgeScore $judgeScore): static
+    {
+        if (!$this->judgeScores->contains($judgeScore)) {
+            $this->judgeScores->add($judgeScore);
+            $judgeScore->setRunExecution($this);
+        }
+
+        return $this;
+    }
+
+    public function removeJudgeScore(JudgeScore $judgeScore): static
+    {
+        $this->judgeScores->removeElement($judgeScore);
 
         return $this;
     }
