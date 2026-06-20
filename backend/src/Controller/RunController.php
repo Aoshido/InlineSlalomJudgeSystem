@@ -12,6 +12,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Mercure\HubInterface;
+use Symfony\Component\Mercure\Update;
 
 #[Route('/api/run')]
 class RunController extends AbstractController
@@ -51,7 +53,8 @@ class RunController extends AbstractController
     public function createExecution(
         Run $run,
         Request $request,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        HubInterface $hub
     ): JsonResponse {
         $payload = json_decode($request->getContent(), true);
 
@@ -71,16 +74,39 @@ class RunController extends AbstractController
         $em->persist($execution);
         $em->flush();
 
+        $topic = sprintf(
+            'tournament/%d/run/%d',
+            $run->getTournament()->getId(),
+            $run->getId()
+        );
+
+        $hub->publish(new Update(
+            $topic,
+            json_encode([
+                'type' => 'execution.created',
+                'tournamentId' => $run->getTournament()->getId(),
+                'runId' => $run->getId(),
+                'executionId' => $execution->getId(),
+                'data' => [
+                    'trick' => $trick->getName(),
+                    'line' => $execution->getLine()->value,
+                    'sequenceNumber' => $execution->getSequenceNumber(),
+                ]
+            ])
+        ));
+
         return $this->json([
             'id' => $execution->getId()
         ]);
     }
 
     #[Route('/execution/{id}/score', methods: ['POST'])]
+    #[Route('/execution/{id}/score', methods: ['POST'])]
     public function scoreExecution(
         RunExecution $execution,
         Request $request,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        HubInterface $hub
     ): JsonResponse {
         $payload = json_decode($request->getContent(), true);
 
@@ -98,6 +124,29 @@ class RunController extends AbstractController
 
         $em->persist($score);
         $em->flush();
+
+        $run = $execution->getRun();
+
+        $topic = sprintf(
+            'tournament/%d/run/%d',
+            $run->getTournament()->getId(),
+            $run->getId()
+        );
+
+        $hub->publish(new Update(
+            $topic,
+            json_encode([
+                'type' => 'score.submitted',
+                'tournamentId' => $run->getTournament()->getId(),
+                'runId' => $run->getId(),
+                'executionId' => $execution->getId(),
+                'data' => [
+                    'judgeId' => $judge->getId(),
+                    'judgeName' => $judge->getName(),
+                    'score' => $score->getScore(),
+                ]
+            ])
+        ));
 
         return $this->json(['ok' => true]);
     }

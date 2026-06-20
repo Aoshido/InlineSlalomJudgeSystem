@@ -123,3 +123,127 @@ Future versions may introduce:
 - Expanded artistic scoring rules
 
 The classification system (families, ratings, trick values) is versioned per season and must never overwrite historical competition data.
+
+
+---
+
+## Real-Time System (Mercure)
+
+The system uses Mercure (SSE pub/sub) to broadcast live competition updates to judges.
+
+Mercure is used ONLY for real-time UI updates. It does not replace persistence. All data is still stored in the database.
+
+---
+
+## Event Design Philosophy
+
+- Events are append-only notifications
+- Backend is the source of truth
+- Frontend never modifies state directly
+- Every event represents something that already happened in the database
+
+---
+
+## Topic Structure (IMPORTANT)
+
+We use hierarchical topics scoped to tournament context:
+
+- tournament/{tournamentId}/run/{runId}
+- tournament/{tournamentId}/run/{runId}/execution/{executionId}
+- tournament/{tournamentId}/run/{runId}/execution/{executionId}/score
+
+### Subscription rule
+
+Judges subscribe to:
+
+- tournament/{tournamentId}/run/{runId}
+
+This gives them all live updates for a run.
+
+---
+
+## Event Format
+
+All Mercure messages MUST follow this structure:
+
+```json
+{
+  "type": "event.name",
+  "tournamentId": 1,
+  "runId": 10,
+  "executionId": 55,
+  "data": {}
+}
+```
+## Events
+### execution.created
+
+Triggered when a skater performs a trick.
+
+Topic:
+ - tournament/{tournamentId}/run/{runId}
+
+```json
+{
+    "type": "execution.created",
+    "tournamentId": 1,
+    "runId": 10,
+    "executionId": 55,
+    "data": {
+        "trick": "Butterfly",
+        "line": 120,
+        "sequenceNumber": 3
+    }
+}
+```
+---
+
+### score.submitted
+
+Triggered when a judge submits a score.
+
+Topic:
+ - tournament/{tournamentId}/run/{runId}
+
+```json
+{
+    "type": "score.submitted",
+    "tournamentId": 1,
+    "runId": 10,
+    "executionId": 55,
+    "data": {
+        "judgeId": 2,
+        "judgeName": "Judge 1",
+        "score": 7
+    }
+}
+```
+---
+## Backend Responsibilities
+
+On API actions:
+
+- On execution creation:
+  - persist RunExecution
+  - publish execution.created event
+-  On score submission:
+  - persist JudgeScore
+  - publish score.submitted event
+
+---
+
+## Frontend Responsibilities
+
+ - Subscribe to tournament/run topic
+ - Update UI in real time
+ - Do NOT compute final scoring
+ - Do NOT assume ordering guarantees
+
+---
+
+## Constraints
+ - Mercure is event delivery only
+ - No replay guarantee
+ - No ordering guarantee
+ - Database remains source of truth
+---
