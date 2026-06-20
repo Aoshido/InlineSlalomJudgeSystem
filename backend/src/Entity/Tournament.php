@@ -27,9 +27,16 @@ class Tournament
     #[ORM\OneToMany(targetEntity: Judge::class, mappedBy: 'tournament')]
     private Collection $judges;
 
+    /**
+     * @var Collection<int, Run>
+     */
+    #[ORM\OneToMany(targetEntity: Run::class, mappedBy: 'tournament', orphanRemoval: true)]
+    private Collection $runs;
+
     public function __construct()
     {
         $this->judges = new ArrayCollection();
+        $this->runs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -85,6 +92,36 @@ class Tournament
             // set the owning side to null (unless already changed)
             if ($judge->getTournament() === $this) {
                 $judge->setTournament(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Run>
+     */
+    public function getRuns(): Collection
+    {
+        return $this->runs;
+    }
+
+    public function addRun(Run $run): static
+    {
+        if (!$this->runs->contains($run)) {
+            $this->runs->add($run);
+            $run->setTournament($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRun(Run $run): static
+    {
+        if ($this->runs->removeElement($run)) {
+            // set the owning side to null (unless already changed)
+            if ($run->getTournament() === $this) {
+                $run->setTournament(null);
             }
         }
 
