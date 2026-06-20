@@ -16,8 +16,9 @@ class RunExecution
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private string $trickName;
+    #[ORM\ManyToOne(inversedBy: 'runExecutions')]
+    #[ORM\JoinColumn(nullable: false)]
+    private Trick $trick;
 
     #[ORM\Column]
     private int $sequenceNumber;
@@ -45,14 +46,14 @@ class RunExecution
         return $this->id;
     }
 
-    public function getTrickName(): ?string
+    public function getTrick(): Trick
     {
-        return $this->trickName;
+        return $this->trick;
     }
 
-    public function setTrickName(string $trickName): static
+    public function setTrick(Trick $trick): static
     {
-        $this->trickName = $trickName;
+        $this->trick = $trick;
 
         return $this;
     }
