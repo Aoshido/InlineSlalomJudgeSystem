@@ -16,6 +16,21 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  mercure:
+    image: dunglas/mercure
+
+    container_name: slalomjudge-mercure
+
+    environment:
+      SERVER_NAME: ':80'
+      MERCURE_PUBLISHER_JWT_KEY: '!ChangeThisMercureHubJWTSecretKey!'
+      MERCURE_SUBSCRIBER_JWT_KEY: '!ChangeThisMercureHubJWTSecretKey!'
+      MERCURE_EXTRA_DIRECTIVES: |
+        cors_origins *
+
+    ports:
+      - "3000:80"
+
   backend:
     build:
       context: .
