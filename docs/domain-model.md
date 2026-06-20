@@ -47,42 +47,78 @@ The system is not required to automatically determine competition winners in its
 
 ---
 
-## Entities
+## Runtime Model (Event Flow)
 
-Tournament
+A Run is modeled as an event-based structure.
 
-Judge
+### Run
 
-Skater
+Represents a single skater performance inside a tournament.
 
-Run
+- Belongs to Tournament
+- Belongs to Skater
+- Has status: LIVE | CLOSED
+- Is immutable once CLOSED
 
-RunExecution
+### RunExecution
 
-JudgeScore
+Represents a single trick occurrence during a run.
 
-Trick
+- Belongs to Run
+- Contains:
+   - trick name
+   - line (50 / 80 / 120)
+   - timestamp
 
-TrickClassification
+Each execution represents one performed trick.
+
+### JudgeScore
+
+Represents a judge’s evaluation of a RunExecution.
+
+- Belongs to RunExecution
+- Belongs to Judge
+- Score range: -10 to +10
+
+### Scoring Rule
+
+- Final execution score = average of all JudgeScores
+- Only best execution per trick counts in final scoring
+
+---
+
+## Core Entities
+
+These are the main persistence models of the system:
+
+- Tournament
+- Judge
+- Skater
+- Run
+- RunExecution
+- JudgeScore
+- Trick (planned)
+- TrickClassification (planned)
 
 ---
 
 ## Known Families
 
-Sitting
-
-Lineals
-
-Others
-
-Spinning
-
-Jumping
+- Sitting
+- Lineals
+- Others
+- Spinning
+- Jumping
 
 ---
 
 ## Future Considerations
 
-The official ruleset may change from year to year.
+Future versions may introduce:
 
-Trick classifications, families and ratings must therefore be versioned by season and must not overwrite historical competition data.
+- Full Trick database validation during live judging
+- Automatic scoring calculations in real-time
+- Ranking generation during competition
+- Expanded artistic scoring rules
+
+The classification system (families, ratings, trick values) is versioned per season and must never overwrite historical competition data.
