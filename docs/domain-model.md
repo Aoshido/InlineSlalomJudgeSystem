@@ -121,6 +121,8 @@ Future versions may introduce:
 - Automatic scoring calculations in real-time
 - Ranking generation during competition
 - Expanded artistic scoring rules
+- Dedicated Public / TV broadcast view showing live competition state (trick, line, and judge scores)
+- Role-based data filtering (Judges vs Public vs Admin consumers of the same event stream)
 
 The classification system (families, ratings, trick values) is versioned per season and must never overwrite historical competition data.
 

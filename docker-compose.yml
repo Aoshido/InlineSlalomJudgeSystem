@@ -27,6 +27,8 @@ services:
       MERCURE_SUBSCRIBER_JWT_KEY: '!ChangeThisMercureHubJWTSecretKey!'
       MERCURE_EXTRA_DIRECTIVES: |
         cors_origins *
+        anonymous
+        demo
 
     ports:
       - "3000:80"
